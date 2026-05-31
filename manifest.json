@@ -1,0 +1,25 @@
+{
+  "name": "我的第二大腦 — 每日日記",
+  "short_name": "每日日記",
+  "description": "每日記錄、卦象、待辦、照片",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f3ed",
+  "theme_color": "#1c1c1a",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

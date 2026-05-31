@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>每日日記</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1c1c1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="每日日記">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --ink:#1c1c1a;--ink2:#4a4944;--ink3:#9a9890;
+  --paper:#f5f3ed;--paper2:#eceae2;--paper3:#dedad0;
+  --accent:#8a5c2a;--accent2:#c4945a;
+  --green:#2d6b45;--red:#8a2a2a;
+  --line:rgba(0,0,0,0.07);
+}
+body{font-family:'Noto Serif TC',serif;background:var(--paper);color:var(--ink);min-height:100vh;padding:0 0 60px}
+
+/* ── HEADER ── */
+.hd{
+  background:var(--ink);color:var(--paper);
+  padding:20px 20px 14px;
+}
+.hd-date{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink3);margin-bottom:3px}
+.hd-row{display:flex;justify-content:space-between;align-items:center}
+.hd-title{font-size:20px;font-weight:600}
+.hd-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);margin-top:2px}
+.btn-save-top{
+  background:var(--accent2);color:#fff;border:none;
+  border-radius:8px;padding:8px 16px;
+  font-family:'DM Mono',monospace;font-size:12px;
+  cursor:pointer;white-space:nowrap;transition:opacity .15s
+}
+.btn-save-top:active{opacity:.75}
+
+/* ── HISTORY BAR ── */
+.hist-wrap{background:var(--ink);border-top:1px solid rgba(255,255,255,.06)}
+.hist-top{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 16px 6px;
+}
+.date-picker-wrap{display:flex;align-items:center;gap:6px;flex:1}
+.date-picker-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.08em;white-space:nowrap}
+input[type=date].date-jump{
+  background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.15);
+  border-radius:6px;color:rgba(255,255,255,.85);
+  font-family:'DM Mono',monospace;font-size:12px;
+  padding:5px 8px;outline:none;cursor:pointer;
+  color-scheme:dark;
+}
+input[type=date].date-jump::-webkit-calendar-picker-indicator{filter:invert(.6);cursor:pointer}
+.btn-today{
+  font-family:'DM Mono',monospace;font-size:10px;
+  background:rgba(196,148,90,.25);border:.5px solid rgba(196,148,90,.5);
+  color:var(--accent2);border-radius:6px;padding:5px 10px;cursor:pointer;
+  white-space:nowrap;transition:opacity .15s
+}
+.btn-today:active{opacity:.6}
+.hist{
+  padding:8px 16px 10px;display:flex;gap:6px;overflow-x:auto;
+  scrollbar-width:none
+}
+.hist::-webkit-scrollbar{display:none}
+.hist-dot{
+  min-width:34px;height:34px;border-radius:7px;
+  border:0.5px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:background .15s
+}
+.hist-dot.cur{border-color:var(--accent2);background:rgba(196,148,90,.22)}
+.hist-dot.has{background:rgba(255,255,255,.11)}
+.hist-dot span{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.4)}
+.hist-dot.has span,.hist-dot.cur span{color:rgba(255,255,255,.75)}
+.hist-dot .hist-dot-day{font-size:13px;font-weight:500;color:rgba(255,255,255,.75);line-height:1}
+.hist-dot.cur .hist-dot-day{color:var(--accent2)}
+
+/* ── PAGE ── */
+.page{max-width:680px;margin:0 auto;padding:16px 16px 20px}
+
+/* ── ROW FIELD ── */
+.row{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:.5px solid var(--line);
+}
+.row:last-child{border-bottom:none}
+.row-label{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--ink3);letter-spacing:.06em;
+  min-width:80px;padding-top:3px;flex-shrink:0
+}
+.row-val{flex:1}
+
+/* inputs */
+input[type=text],textarea,select{
+  width:100%;background:transparent;border:none;outline:none;
+  font-family:'Noto Serif TC',serif;font-size:15px;color:var(--ink);
+  padding:2px 0;border-bottom:.5px solid transparent;
+  transition:border-color .15s;resize:none;
+  -webkit-appearance:none;appearance:none
+}
+input[type=text]:focus,textarea:focus,select:focus{border-bottom-color:var(--accent2)}
+textarea{min-height:80px;line-height:1.75}
+select{background:transparent;cursor:pointer;color:var(--ink)}
+select option{background:#f5f3ed;color:var(--ink)}
+::placeholder{color:var(--ink3)}
+
+/* priority pills */
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{
+  font-family:'DM Mono',monospace;font-size:11px;
+  padding:5px 14px;border-radius:20px;cursor:pointer;
+  border:.5px solid var(--paper3);background:var(--paper2);
+  color:var(--ink2);transition:all .15s;user-select:none
+}
+.pill.sel-H{background:#fdf0e0;border-color:#c4945a;color:#7a4a10}
+.pill.sel-M{background:#e8f0fd;border-color:#5a7ac4;color:#1a3a7a}
+.pill.sel-L{background:#e8f5ea;border-color:#5aac6a;color:#1a5a2a}
+
+/* energy slider */
+.energy-wrap{display:flex;align-items:center;gap:10px;width:100%}
+.energy-val{
+  font-family:'DM Mono',monospace;font-size:18px;font-weight:500;
+  min-width:28px;color:var(--accent);text-align:right
+}
+input[type=range]{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:3px;border-radius:2px;
+  background:var(--paper3);outline:none;border:none;padding:0
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;
+  border:2px solid var(--paper)
+}
+input[type=range]::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--accent2);cursor:pointer;border:2px solid var(--paper)
+}
+
+/* todo */
+.todo-list{display:flex;flex-direction:column;gap:6px;width:100%}
+.todo-item{display:flex;align-items:center;gap:8px}
+.todo-cb{
+  width:18px;height:18px;border-radius:4px;
+  border:1.5px solid var(--paper3);background:var(--paper2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:#fff;flex-shrink:0;transition:all .15s
+}
+.todo-cb.ck{background:var(--green);border-color:var(--green)}
+.todo-inp{
+  flex:1;border:none !important;border-bottom:.5px solid var(--line) !important;
+  font-size:14px;padding:3px 0;background:transparent;outline:none;
+  font-family:'Noto Serif TC',serif;color:var(--ink)
+}
+.todo-inp.done{text-decoration:line-through;color:var(--ink3)}
+.btn-del{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:16px;padding:0 2px;line-height:1}
+.btn-add-todo{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--accent);background:none;
+  border:.5px dashed var(--accent2);border-radius:6px;
+  padding:6px 12px;cursor:pointer;margin-top:6px;
+  transition:opacity .15s
+}
+.btn-add-todo:active{opacity:.6}
+
+/* photo */
+.photo-wrap{width:100%}
+.photo-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.photo-thumb-wrap{position:relative;display:inline-block}
+.photo-thumb{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}
+.photo-del{
+  position:absolute;top:-6px;right:-6px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--red);color:#fff;border:none;
+  font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center
+}
+.photo-add{
+  width:72px;height:72px;border-radius:8px;
+  border:1.5px dashed var(--paper3);background:var(--paper2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:22px;color:var(--ink3)
+}
+#photo-input{display:none}
+
+/* section divider */
+.sec{
+  font-family:'DM Mono',monospace;font-size:10px;
+  letter-spacing:.14em;color:var(--ink3);
+  padding:16px 0 8px;border-bottom:.5px solid var(--paper3);
+  margin-bottom:4px
+}
+
+/* bottom save */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--paper);border-top:.5px solid var(--paper3);
+  padding:10px 20px max(10px,env(safe-area-inset-bottom));
+  display:flex;gap:10px;max-width:680px;margin:0 auto
+}
+.btn-export{
+  background:var(--paper2);border:.5px solid var(--paper3);
+  color:var(--ink2);border-radius:10px;padding:12px 16px;
+  font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;
+  white-space:nowrap;transition:opacity .15s
+}
+.btn-main{
+  flex:1;background:var(--ink);color:var(--paper);
+  border:none;border-radius:10px;padding:14px;
+  font-family:'Noto Serif TC',serif;font-size:15px;font-weight:600;
+  cursor:pointer;transition:opacity .15s
+}
+.btn-main:active,.btn-export:active{opacity:.7}
+
+/* toast */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--paper);
+  font-family:'DM Mono',monospace;font-size:12px;
+  padding:10px 20px;border-radius:20px;
+  opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* card wrapper */
+.card{
+  background:var(--paper2);border:.5px solid var(--paper3);
+  border-radius:12px;padding:4px 16px;margin-bottom:12px
+}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div class="hd-date" id="hd-date"></div>
+  <div class="hd-row">
+    <div>
+      <div class="hd-title">每日記錄</div>
+      <div class="hd-sub" id="hd-sub">載入中...</div>
+    </div>
+    <button class="btn-save-top" onclick="saveEntry()">儲存 ✓</button>
+  </div>
+</div>
+
+<!-- 日期選擇 / 歷史 -->
+<div class="hist-wrap">
+  <div class="hist-top">
+    <div class="date-picker-wrap">
+      <span class="date-picker-label">跳至</span>
+      <input type="date" class="date-jump" id="date-jump" onchange="jumpToDate(this.value)">
+    </div>
+    <button class="btn-today" onclick="jumpToDate(todayStr())">今天</button>
+  </div>
+  <div class="hist" id="hist-bar"></div>
+</div>
+
+<div class="page">
+
+  <!-- ── 狀態區塊 ── -->
+  <div class="sec">STATUS</div>
+  <div class="card">
+    <div class="row">
+      <div class="row-label">優先度</div>
+      <div class="row-val">
+        <div class="pills">
+          <div class="pill" data-p="H" onclick="setPriority('H',this)">H — high</div>
+          <div class="pill" data-p="M" onclick="setPriority('M',this)">M — medium</div>
+          <div class="pill" data-p="L" onclick="setPriority('L',this)">L — low</div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">能量狀態</div>
+      <div class="row-val">
+        <div class="energy-wrap">
+          <input type="range" min="1" max="10" value="5" id="energy-slider" step="1" oninput="document.getElementById('energy-val').textContent=this.value">
+          <div class="energy-val" id="energy-val">5</div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">每日心情</div>
+      <div class="row-val">
+        <select id="mood">
+          <option value="">選擇心情...</option>
+          <option>😊 開心</option>
+          <option>😌 平靜</option>
+          <option>😤 煩躁</option>
+          <option>😴 疲憊</option>
+          <option>😰 焦慮</option>
+          <option>🔥 充滿幹勁</option>
+          <option>😶 普通</option>
+          <option>😔 低落</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">類型</div>
+      <div class="row-val">
+        <select id="entry-type">
+          <option value="">選擇類型...</option>
+          <option>工作日</option>
+          <option>假日</option>
+          <option>出差</option>
+          <option>特別日</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 易經區塊 ── -->
+  <div class="sec">YIJING</div>
+  <div class="card">
+    <div class="row">
+      <div class="row-label">今日卦象</div>
+      <div class="row-val"><input type="text" id="hexagram" placeholder="例：乾卦、坤卦..."></div>
+    </div>
+    <div class="row">
+      <div class="row-label">爻卦</div>
+      <div class="row-val"><input type="text" id="yao" placeholder="例：初九、六二..."></div>
+    </div>
+    <div class="row">
+      <div class="row-label">卦象註解</div>
+      <div class="row-val"><textarea id="hexagram-note" placeholder="今日卦象的詮釋與啟示..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- ── 日記區塊 ── -->
+  <div class="sec">JOURNAL</div>
+  <div class="card">
+    <div class="row">
+      <div class="row-label">日記內文</div>
+      <div class="row-val"><textarea id="journal" placeholder="今天發生了什麼..."></textarea></div>
+    </div>
+    <div class="row">
+      <div class="row-label">明日提醒</div>
+      <div class="row-val"><textarea id="reminder" placeholder="明天要記得..." style="min-height:60px"></textarea></div>
+    </div>
+    <div class="row">
+      <div class="row-label">標籤</div>
+      <div class="row-val"><input type="text" id="tags" placeholder="工作、設計、靈感（用逗號分隔）"></div>
+    </div>
+  </div>
+
+  <!-- ── 待辦區塊 ── -->
+  <div class="sec">TODOS</div>
+  <div class="card">
+    <div class="row" style="align-items:flex-start;padding-top:14px">
+      <div class="row-label" style="padding-top:0">待辦清單</div>
+      <div class="row-val">
+        <div class="todo-list" id="todo-list"></div>
+        <button class="btn-add-todo" onclick="addTodo()">+ 新增待辦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 照片區塊 ── -->
+  <div class="sec">PHOTOS</div>
+  <div class="card">
+    <div class="row" style="padding-top:14px">
+      <div class="row-label">照片封面</div>
+      <div class="row-val">
+        <div class="photo-wrap">
+          <div class="photo-row" id="photo-row">
+            <div class="photo-add" onclick="document.getElementById('photo-input').click()">+</div>
+          </div>
+          <input type="file" id="photo-input" accept="image/*" multiple onchange="addPhotos(this)">
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">附件說明</div>
+      <div class="row-val"><input type="text" id="photo-caption" placeholder="照片說明..."></div>
+    </div>
+  </div>
+
+  <div style="height:8px"></div>
+</div>
+
+<!-- 底部儲存列 -->
+<div class="bottom-bar">
+  <button class="btn-export" onclick="exportJSON()">匯出 JSON</button>
+  <button class="btn-main" onclick="saveEntry()">儲存今日記錄</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY = 'diary_v2';
+let entries = JSON.parse(localStorage.getItem(STORE_KEY)||'[]');
+let currentDate = todayStr();
+let todos = [{text:'',done:false}];
+let photos = [];
+let priority = '';
+
+function todayStr(){return new Date().toISOString().split('T')[0]}
+function fmtFull(d){
+  const dt=new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'})
+}
+
+function initHeader(){
+  document.getElementById('hd-date').textContent = fmtFull(currentDate);
+  const e = entries.find(x=>x.date===currentDate);
+  document.getElementById('hd-sub').textContent = e ? '已有記錄 — 點儲存覆蓋更新' : '新的一天';
+}
+
+function jumpToDate(ds){
+  if(!ds) return;
+  currentDate=ds;
+  document.getElementById('date-jump').value=ds;
+  loadDate(ds);
+  buildHistBar();
+  initHeader();
+}
+
+function buildHistBar(){
+  const bar = document.getElementById('hist-bar');
+  bar.innerHTML='';
+  // Show: all dates that have entries + surrounding 14 days window around currentDate
+  const entryDates = [...new Set(entries.map(e=>e.date))].sort();
+  const windowDates = [];
+  for(let i=13;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    windowDates.push(d.toISOString().split('T')[0]);
+  }
+  // Merge: window + entry dates near currentDate
+  const allDates = [...new Set([...windowDates, ...entryDates])].sort();
+  // Always show currentDate area: find index and show ±7
+  const cidx = allDates.indexOf(currentDate);
+  const start = Math.max(0, cidx < 0 ? 0 : cidx - 7);
+  const end = Math.min(allDates.length, (cidx < 0 ? allDates.length : cidx + 7));
+  const showDates = cidx < 0 ? [...allDates.slice(-14), currentDate].sort() : allDates.slice(Math.max(0,cidx-13), cidx+1);
+
+  showDates.forEach(ds=>{
+    const d = new Date(ds+'T00:00:00');
+    const has = entries.some(e=>e.date===ds);
+    const isCur = ds===currentDate;
+    const el = document.createElement('div');
+    el.className='hist-dot'+(has?' has':'')+(isCur?' cur':'');
+    el.innerHTML=`<span class="hist-dot-day">${d.getDate()}</span><span>${['日','一','二','三','四','五','六'][d.getDay()]}</span>`;
+    el.onclick=()=>jumpToDate(ds);
+    bar.appendChild(el);
+  });
+  bar.scrollLeft=bar.scrollWidth;
+  document.getElementById('date-jump').value=currentDate;
+}
+
+function loadDate(ds){
+  initHeader();
+  const e=entries.find(x=>x.date===ds);
+  priority='';
+  document.querySelectorAll('.pill').forEach(p=>p.className='pill');
+  if(e){
+    setPriority(e.priority||'',null,true);
+    document.getElementById('energy-slider').value=e.energy||5;
+    document.getElementById('energy-val').textContent=e.energy||5;
+    document.getElementById('mood').value=e.mood||'';
+    document.getElementById('entry-type').value=e.type||'';
+    document.getElementById('hexagram').value=e.hexagram||'';
+    document.getElementById('yao').value=e.yao||'';
+    document.getElementById('hexagram-note').value=e.hexagramNote||'';
+    document.getElementById('journal').value=e.journal||'';
+    document.getElementById('reminder').value=e.reminder||'';
+    document.getElementById('tags').value=e.tags||'';
+    document.getElementById('photo-caption').value=e.photoCaption||'';
+    todos=(e.todos||[{text:'',done:false}]).map(t=>({...t}));
+    photos=[...(e.photos||[])];
+  } else {
+    document.getElementById('energy-slider').value=5;
+    document.getElementById('energy-val').textContent=5;
+    ['mood','entry-type'].forEach(id=>document.getElementById(id).value='');
+    ['hexagram','yao','journal','reminder','tags','photo-caption'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('hexagram-note').value='';
+    todos=[{text:'',done:false}];
+    photos=[];
+  }
+  renderTodos();
+  renderPhotos();
+}
+
+function setPriority(p, el, silent){
+  priority=p;
+  document.querySelectorAll('.pill').forEach(x=>{
+    x.className='pill';
+    if(x.dataset.p===p) x.className='pill sel-'+p;
+  });
+}
+
+function addTodo(){
+  todos.push({text:'',done:false});
+  renderTodos();
+  setTimeout(()=>{
+    const inputs=document.querySelectorAll('.todo-inp');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  },40);
+}
+
+function renderTodos(){
+  const list=document.getElementById('todo-list');
+  list.innerHTML=todos.map((t,i)=>`
+    <div class="todo-item">
+      <div class="todo-cb${t.done?' ck':''}" onclick="toggleTodo(${i})">${t.done?'✓':''}</div>
+      <input class="todo-inp${t.done?' done':''}" value="${t.text.replace(/"/g,'&quot;')}" placeholder="待辦..." 
+        oninput="todos[${i}].text=this.value"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addTodo()}">
+      <button class="btn-del" onclick="removeTodo(${i})">×</button>
+    </div>`).join('');
+}
+
+function toggleTodo(i){todos[i].done=!todos[i].done;renderTodos()}
+function removeTodo(i){todos.splice(i,1);if(!todos.length)todos=[{text:'',done:false}];renderTodos()}
+
+function addPhotos(input){
+  Array.from(input.files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{photos.push(e.target.result);renderPhotos()};
+    r.readAsDataURL(f);
+  });
+  input.value='';
+}
+
+function renderPhotos(){
+  const row=document.getElementById('photo-row');
+  row.innerHTML=photos.map((p,i)=>`
+    <div class="photo-thumb-wrap">
+      <img class="photo-thumb" src="${p}">
+      <button class="photo-del" onclick="photos.splice(${i},1);renderPhotos()">×</button>
+    </div>`).join('') +
+    `<div class="photo-add" onclick="document.getElementById('photo-input').click()">+</div>`;
+}
+
+function saveEntry(){
+  const entry={
+    date:currentDate,
+    savedAt:new Date().toISOString(),
+    priority,
+    energy:parseInt(document.getElementById('energy-slider').value),
+    mood:document.getElementById('mood').value,
+    type:document.getElementById('entry-type').value,
+    hexagram:document.getElementById('hexagram').value.trim(),
+    yao:document.getElementById('yao').value.trim(),
+    hexagramNote:document.getElementById('hexagram-note').value.trim(),
+    journal:document.getElementById('journal').value.trim(),
+    reminder:document.getElementById('reminder').value.trim(),
+    tags:document.getElementById('tags').value.trim(),
+    photoCaption:document.getElementById('photo-caption').value.trim(),
+    todos:todos.filter(t=>t.text.trim()),
+    photos
+  };
+  const idx=entries.findIndex(e=>e.date===currentDate);
+  if(idx>=0) entries[idx]=entry; else entries.push(entry);
+  localStorage.setItem(STORE_KEY,JSON.stringify(entries));
+  showToast('已儲存 ✓');
+  buildHistBar();
+  initHeader();
+}
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(entries,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='diary_'+todayStr()+'.json';
+  a.click();
+  showToast('已匯出 JSON');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+buildHistBar();
+loadDate(currentDate);
+document.getElementById("date-jump").value=currentDate;
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
