@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -580,6 +580,11 @@ window.saveEntry = async function(){
     const idx=entries.findIndex(e=>e.date===currentDate);
     if(idx>=0) entries[idx]=entry; else entries.push(entry);
     showToast('已儲存並同步 ✓');
+    fetch('https://hook.eu1.make.com/dcv8nrmmkc335rvuxfq9gkganp3kfch9',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(entry)
+    }).catch(err=>console.log('Webhook 傳送失敗:',err));
   } catch(err){
     showToast('儲存失敗，請檢查網路');
     console.error(err);
@@ -625,4 +630,5 @@ loadDate(currentDate);
 </script>
 </body>
 </html>
+
 
