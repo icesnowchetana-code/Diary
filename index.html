@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -172,6 +172,12 @@ input[type=range]::-moz-range-thumb{
   transition:opacity .15s
 }
 .btn-add-todo:active{opacity:.6}
+.todo-time{
+  font-family:'DM Mono',monospace;font-size:12px;
+  border:none !important;border-bottom:.5px solid var(--line) !important;
+  background:transparent;outline:none;color:var(--ink3);
+  width:90px;flex-shrink:0;padding:3px 0;cursor:pointer
+}
 
 /* photo */
 .photo-wrap{width:100%}
@@ -414,7 +420,7 @@ const db = firebase.firestore();
 
 let entries = [];
 let currentDate = todayStr();
-let todos = [{text:'',done:false}];
+let todos = [{text:'',done:false,time:''}];
 let photos = [];
 let priority = '';
 
@@ -492,7 +498,7 @@ function loadDate(ds){
     ['mood','entry-type'].forEach(id=>document.getElementById(id).value='');
     ['hexagram','yao','journal','reminder','tags','photo-caption'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('hexagram-note').value='';
-    todos=[{text:'',done:false}];
+    todos=[{text:'',done:false,time:''}];
     photos=[];
   }
   renderTodos();
@@ -508,7 +514,7 @@ window.setPriority = function(p, el, silent){
 }
 
 window.addTodo = function(){
-  todos.push({text:'',done:false});
+  todos.push({text:'',done:false,time:''});
   renderTodos();
   setTimeout(()=>{
     const inputs=document.querySelectorAll('.todo-inp');
@@ -521,9 +527,10 @@ function renderTodos(){
   list.innerHTML=todos.map((t,i)=>`
     <div class="todo-item">
       <div class="todo-cb${t.done?' ck':''}" onclick="toggleTodo(${i})">${t.done?'✓':''}</div>
-      <input class="todo-inp${t.done?' done':''}" value="${t.text.replace(/"/g,'&quot;')}" placeholder="待辦..." 
+      <input class="todo-inp${t.done?' done':''}" value="${t.text.replace(/"/g,'&quot;')}" placeholder="待辦..."
         oninput="todos[${i}].text=this.value"
         onkeydown="if(event.key==='Enter'){event.preventDefault();addTodo()}">
+      <input type="time" class="todo-time" value="${t.time||''}" oninput="todos[${i}].time=this.value">
       <button class="btn-del" onclick="removeTodo(${i})">×</button>
     </div>`).join('');
 }
@@ -618,3 +625,4 @@ loadDate(currentDate);
 </script>
 </body>
 </html>
+
