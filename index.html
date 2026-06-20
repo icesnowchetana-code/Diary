@@ -1,4 +1,4 @@
-﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -590,7 +590,7 @@ window.saveEntry = async function(){
     fetch('https://hook.eu1.make.com/9bv0hm80rxv3lalafqqqcyg8xss7zdxd',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({...entry,notionTodoBlocks})
+      body:JSON.stringify({...entry,notionTodoBlocksJSON:JSON.stringify(notionTodoBlocks)})
     }).catch(err=>console.log('Webhook 傳送失敗:',err));
   } catch(err){
     showToast('儲存失敗，請檢查網路');
@@ -637,6 +637,7 @@ loadDate(currentDate);
 </script>
 </body>
 </html>
+
 
 
 
