@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -580,7 +580,7 @@ window.saveEntry = async function(){
     const idx=entries.findIndex(e=>e.date===currentDate);
     if(idx>=0) entries[idx]=entry; else entries.push(entry);
     showToast('已儲存並同步 ✓');
-    fetch('https://hook.eu1.make.com/dcv8nrmmkc335rvuxfq9gkganp3kfch9',{
+    fetch('https://hook.eu1.make.com/9bv0hm80rxv3lalafqqqcyg8xss7zdxd',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(entry)
@@ -630,5 +630,6 @@ loadDate(currentDate);
 </script>
 </body>
 </html>
+
 
 
