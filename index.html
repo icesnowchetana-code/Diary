@@ -1,4 +1,4 @@
-﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -580,10 +580,17 @@ window.saveEntry = async function(){
     const idx=entries.findIndex(e=>e.date===currentDate);
     if(idx>=0) entries[idx]=entry; else entries.push(entry);
     showToast('已儲存並同步 ✓');
+    const notionTodoBlocks=entry.todos.map(t=>({
+      object:'block',type:'to_do',
+      to_do:{
+        rich_text:[{type:'text',text:{content:[t.time,t.text].filter(Boolean).join(' ')}}],
+        checked:!!t.done
+      }
+    }));
     fetch('https://hook.eu1.make.com/9bv0hm80rxv3lalafqqqcyg8xss7zdxd',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(entry)
+      body:JSON.stringify({...entry,notionTodoBlocks})
     }).catch(err=>console.log('Webhook 傳送失敗:',err));
   } catch(err){
     showToast('儲存失敗，請檢查網路');
@@ -630,6 +637,7 @@ loadDate(currentDate);
 </script>
 </body>
 </html>
+
 
 
 
